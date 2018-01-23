@@ -23,7 +23,7 @@ connection.connect(function (err) {
 
 
 var mainMenu = function () {
-    var menuOptions = ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"];
+    var menuOptions = ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Log Out"];
     console.log("Welcome to the Bamazon Manager portal!\n");
 
     inquirer.prompt([{
@@ -45,6 +45,9 @@ var mainMenu = function () {
                 break;
             case "Add New Product":
                 newProduct();
+                break;
+            case "Log Out":
+                endSession();
                 break;
         }
     })
@@ -106,19 +109,80 @@ var updateInventory = function () {
 
     // -then:
     //     - Reset the inventory of the item with matching id/name to current stock + userInventory
+
     //     -Log new stock
-    //     -prompt user to end session, or back to main menu
+    //     -prompt user to update another inventory, go back to mainm menu, or end session
 
 };
 
 var newProduct = function () {
     console.log("New Product!");
-    // - Ask product name
-    // - Ask product starting quantity
-    // - Ask product department
-    // - Ask product price
 
-    // -prompt user to end session, or back to main menu
+    inquirer.prompt([{
+            message: "What is the name of the product?",
+            //validate
+            name: "newName"
+        },
+        {
+            message: "How much of the product is in stock?",
+            name: "newQuantity",
+            default: 10,
+            validate: function (answer) {
+                if (parseInt(answer) % 1 === 0) {
+                    return true
+                } else {
+                    return "Please enter a valid number."
+                }
+            }
+        }, {
+            message: "Please select the product's department:",
+            type: "list",
+            choices: ["electronics", "appliances", "tools", "outdoors"],
+            name: "newDept"
+        },
+        {
+            message: "How much will each of the product cost?",
+            name: "newPrice",
+            // validate: function (val) {
+            //     val = parseFloat(val); //Figure out how to validate 1. numbers only 2. dollars vs. cents (2 characters)
+            //     return true;
+            // }
+        }
+    ]).then(function (response) {
+
+        console.log(`New product name: ${response.newName} New Product quantity: ${response.newQuantity}, product dept: ${response.newDept} product price: ${response.newPrice}`)
+        var query = connection.query(
+            "INSERT INTO products SET?", {
+                product_name: response.newName,
+                department_name: response.newDept,
+                price: response.newPrice,
+                stock_quantity: response.newQuantity
+            },
+            function (err, res) {
+                console.log(`${res.affectedRows} new product has been added!`);
+
+                inquirer.prompt([{
+                    message: "What would you like to do now?",
+                    name: "userChoice",
+                    type: "list",
+                    choices: ["Enter another product", "Go back to the main menu", "Log out of the manager's portal"],
+                    default: "Go back to the main menu"
+                }]).then(function (response) {
+                    switch (response.userChoice) {
+                        case "Enter another product":
+                            newProduct();
+                            break;
+                        case "Go back to the main menu":
+                            mainMenu();
+                            break;
+                        case "Log out of the manager's portal":
+                            endSession();
+                            break;
+                    }
+                })
+            })
+
+    })
 
 };
 
