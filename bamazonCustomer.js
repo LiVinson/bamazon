@@ -79,9 +79,8 @@ var confirmStock = function (userOrder) {
             if (itemStock < userOrder.quantity) {
                 insuffStock(userOrder.quantity, res[0].product_name);
             } else {
-                var newStock =itemStock - userOrder.quantity;
-                console.log(newStock);
-                updateStock(userOrder, newStock);
+                // var newStock =itemStock - userOrder.quantity;
+                updateStock(userOrder, itemStock);
             }
         })
 
@@ -104,8 +103,10 @@ var insuffStock = function (amount, prodName) {
     })
 };
 
-var updateStock = function (order, newStock) {
-    console.log("We have enough of that!");
+var updateStock = function (order, currentStock) {
+
+    var newStock = currentStock - order.quantity;
+    console.log(`We have ${newStock} left of that!`);
     var query = connection.query(
         "UPDATE products SET ? WHERE ?",
         [
@@ -117,25 +118,40 @@ var updateStock = function (order, newStock) {
             }
         ],
         function(err, res) {
-            console.log(res);
+            // console.log(res);
 
             console.log("Order processed!");
-            purchase();
+            purchaseItem(order);
 
         }
-    )
+    )    
+};
 
-    var purchase = function(){
-        console.log("Purchase prince pending!")
-    }
-    //Update the stock (and log)
+var purchaseItem = function(userOrder){
+    console.log("Purchase price pending!")
+    console.log(userOrder.itemNum);
+    connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?",
+{
+    item_id: userOrder.itemNum
+},
+function(err, res) {
+    if (err) throw err;
+    
+    var totalAmt = (res[0].price * userOrder.quantity);
+    console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
+    // console.log(res);
 
-    //Calculate the price and log
 
-    //Ask to make another purchase
-
-    connection.end();
+    connection.end();    
+})
 }
+//Update the stock (and log)
+
+//Calculate the price and log
+
+//Ask to make another purchase
+
+
 // )
 
 
