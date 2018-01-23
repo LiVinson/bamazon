@@ -70,13 +70,35 @@ var viewProducts = function () {
 
 var lowInventory = function () {
     console.log("Low Inventory!");
-    // -Retrieve all items in product inventory with stock < 5
-    // -prompt user to end session, or back to main menu
 
+    connection.query("SELECT item_id, product_name, stock_quantity FROM products WHERE stock_quantity < 5",
+        function (err, res) {
+            if (err) throw err;
+            console.log("Items with Low Inventory:")
+            console.log("____________________________")
+            res.forEach(function (productRow) {
+                console.log(`${productRow.item_id} - ${productRow.product_name} - Quantity: ${productRow.stock_quantity}`)
+            });
+            console.log("\n");
+            inquirer.prompt([{
+                message: "Would you like to reorder any products?",
+                type: "confirm",
+                default: true,
+                name: "reorder"
+            }]).then(function (answer) {
+                if (answer.reorder) {
+                    updateInventory();
+                } else {
+                    console.log("No problem! Please make sure to place a new order soon");
+                    endSession();
+                }
+            })
+        })
 };
 
 var updateInventory = function () {
     console.log("update inventory!");
+    connection.end();
     // -prompt:
     //     - Which item would you like to add more inventory for?
 
