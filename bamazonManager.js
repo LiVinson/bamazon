@@ -19,8 +19,6 @@ connection.connect(function (err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
     mainMenu();
-    connection.end();
-
 });
 
 
@@ -54,20 +52,30 @@ var mainMenu = function () {
 
 
 
-var viewProducts = function (){
+var viewProducts = function () {
     console.log("View Product!")
     // -Retrieve  item id, product name, price, and stock for all items in products table
     // -prompt user to end session, or back to main menu
+
+    connection.query("SELECT item_id, product_name, price, stock_quantity FROM products",
+        function (err, res) {
+            if (err) throw err;
+            res.forEach(function (productRow) {
+                console.log(`Item Id: ${productRow.item_id} - ${productRow.product_name}  Price: $${productRow.price} Stock: ${productRow.stock_quantity}`);
+            });
+            console.log("\n");
+            endSession();
+        })
 };
 
-var lowInventory = function (){
+var lowInventory = function () {
     console.log("Low Inventory!");
     // -Retrieve all items in product inventory with stock < 5
     // -prompt user to end session, or back to main menu
 
 };
 
-var updateInventory = function (){
+var updateInventory = function () {
     console.log("update inventory!");
     // -prompt:
     //     - Which item would you like to add more inventory for?
@@ -89,6 +97,22 @@ var newProduct = function () {
     // - Ask product price
 
     // -prompt user to end session, or back to main menu
-    
-}
 
+};
+
+var endSession = function () {
+    inquirer.prompt([{
+        type: "confirm",
+        message: "Would you like to log out of the manager portal?",
+        name: "endSession",
+        default: true
+
+    }]).then(function (response) {
+        if (response.endSession) {
+            console.log("Have a great day!")
+            connection.end();
+        } else {
+            mainMenu();
+        }
+    })
+}
