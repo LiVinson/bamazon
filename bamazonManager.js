@@ -23,6 +23,8 @@ connection.connect(function (err) {
 
 var bamazonDepts = ["electronics", "appliances", "tools", "outdoors"];
 
+
+//Functions:
 var mainMenu = function () {
     var menuOptions = ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Log Out"];
     console.log("Welcome to the Bamazon Manager portal!\n");
@@ -67,7 +69,6 @@ var viewProducts = function (updateInv) {
             console.log("\n");
 
             if (updateInv) { //If user has requested to updated Inventory, call that function, passing in products array
-
                 updateInventory(res);
             } else {
                 inquirer.prompt([{
@@ -84,7 +85,9 @@ var viewProducts = function (updateInv) {
                     }
                 })
             }
+
         })
+
 };
 
 var lowInventory = function () {
@@ -104,9 +107,11 @@ var lowInventory = function () {
                 default: "No, back to the main menu",
                 name: "reorder"
             }]).then(function (answer) {
+
                 switch (answer.reorder) {
                     case "Yes, reorder now":
                         viewProducts(true);
+
                         break;
                     case "No, back to the main menu":
                         mainMenu();
@@ -120,10 +125,8 @@ var lowInventory = function () {
 };
 
 
-var updateInventory = function () {
-    console.log("update inventory!");
-    connection.end();
-    console.log(`The product array is : ${itemArr}`);
+var updateInventory = function (itemArr) {
+     console.log(`The product array is : ${itemArr}`);
 
     inquirer.prompt([{
             message: "Please enter the item id for the product you would like to update",
@@ -133,7 +136,9 @@ var updateInventory = function () {
             message: "How much of this item would you like to add?",
             name: "updateAmt",
             validate: function (value) {
-                if (itemArr.length - 1 > parseInt(value) > 0) {
+
+                if (itemArr.length -1 >parseInt(value) > 0) {
+
                     return true;
                 }
                 return "Please provide a valid number to add inventory to this item"
@@ -143,7 +148,9 @@ var updateInventory = function () {
     ]).then(function (answer) {
 
         answer.updateAmt = parseInt(answer.updateAmt);
-        var currStock = itemArr[answer.updateItem - 1].stock_quantity;
+
+        var currStock = itemArr[answer.updateItem - 1].stock_quantity; 
+
         console.log(`Stock was ${currStock}...`);
 
         var query = connection.query("UPDATE products SET ? where ?", [{
@@ -181,12 +188,13 @@ var updateInventory = function () {
 
 var newProduct = function () {
     inquirer.prompt([{
-            message: "What is the name of the product?",
-            //validate
+
+            message: "What is the name of the new product?",
+            //validation?
             name: "newProd"
         },
         {
-            message: "How many of the product is in stock?",
+            message: "How much of the product is in stock?",
             name: "newProdQuant",
             default: 10,
             validate: function (answer) {
@@ -196,7 +204,9 @@ var newProduct = function () {
                     return "Please enter a valid number."
                 }
             }
-        }, 
+
+        },
+
         {
             message: "Please select the product's department:",
             type: "list",
@@ -221,8 +231,8 @@ var newProduct = function () {
         }
     ]).then(function (response) {
         response.newProdPrice = parseInt(response.newProdPrice).toFixed(2);
-
         console.log(`New product name: ${response.newProd} New Product quantity: ${response.newProdQuant}, product dept: ${response.newProdDept} product price: $${newProdPrice.newPrice}`)
+
         var query = connection.query(
             "INSERT INTO products SET?", {
                 product_name: response.newProd,
@@ -240,6 +250,7 @@ var newProduct = function () {
                     choices: ["Enter another product", "Go back to the main menu", "Log out of the manager's portal"],
                     default: "Go back to the main menu"
                 }]).then(function (response) {
+
                     switch (response.userChoice) {
                         case "Enter another product":
                             newProduct();

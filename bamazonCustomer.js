@@ -21,7 +21,7 @@ connection.connect(function (err) {
     viewInventory();
 });
 
-//display Items function
+//Display Items function
 var viewInventory = function () {
     connection.query("SELECT item_id, product_name, price FROM products", function (err, res) {
         if (err) throw err;
@@ -119,6 +119,7 @@ var updateStock = function (order, currentStock) {
             }
         ],
         function (err, res) {
+
             console.log("\nYour order is processing. Calculating final price...!\n");
             setTimeout(function () {
 
@@ -129,18 +130,19 @@ var updateStock = function (order, currentStock) {
     )
 };
 
+
 //Called if stock is sufficient
 var purchaseItem = function (userOrder) {
     // console.log(userOrder.itemNum);
+
     connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?", {
             item_id: userOrder.itemNum
         },
         function (err, res) {
             if (err) throw err;
-
             var totalAmt = (res[0].price * userOrder.quantity);
             console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
-            // console.log(res);
+
             connection.end();
         })
 }
