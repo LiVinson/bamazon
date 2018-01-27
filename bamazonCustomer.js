@@ -34,10 +34,11 @@ var viewInventory = function () {
         })
 
         requestOrder(res);
-        // connection.end();
+
     })
 };
 
+//Called once viewInventory function completes
 var requestOrder = function (productArr) {
     inquirer.prompt([{
         name: "itemNum",
@@ -51,40 +52,43 @@ var requestOrder = function (productArr) {
 
     }, {
         name: "quantity",
-        message: "How much would you like to buy (please enter a quantity):",
+        message: "How many would you like to buy (please enter a quantity):",
         validate: function (amount) {
             if (parseInt(amount) > 0)
                 return true;
             else
-                return "Please enter a  number greater than 0 for the quanitity";
+                return "Please enter a number greater than 0 for the quanitity";
         }
-    }]).then(confirmStock)
+    }]).then(function (answer) {
+
+
+        console.log(`\nConfirming stock of  ${productArr[answer.itemNum-1].product_name}s...\n`);
+
+        setTimeout(function () {
+
+            confirmStock(answer)
+        }, 2000);
+    });
 };
 
 var confirmStock = function (userOrder) {
-    console.log(`We need to confirm our stock to see if we have ${userOrder.quantity} of that product! We'll get back to you`);
-    console.log(`Item number is ${userOrder.itemNum}`);
-
     userOrder.itemNum = parseInt(userOrder.itemNum);
-
 
     connection.query("SELECT * FROM products WHERE ?", {
             item_id: userOrder.itemNum
         },
         function (err, res) {
             if (err) throw err;
-            console.log(res);
+            // console.log(res);
             var itemStock = res[0].stock_quantity;
             console.log(`There are currently ${itemStock} ${res[0].product_name}s in stock!`)
             if (itemStock < userOrder.quantity) {
                 insuffStock(userOrder.quantity, res[0].product_name);
             } else {
-                // var newStock =itemStock - userOrder.quantity;
                 updateStock(userOrder, itemStock);
             }
         })
-
-}
+};
 
 var insuffStock = function (amount, prodName) {
     console.log(`We're sorry! Currently, we do not have enough ${prodName}s in stock!`);
@@ -104,63 +108,39 @@ var insuffStock = function (amount, prodName) {
 };
 
 var updateStock = function (order, currentStock) {
-
     var newStock = currentStock - order.quantity;
-    console.log(`We have ${newStock} left of that!`);
+    // console.log(`We have ${newStock} left of that!`);
     var query = connection.query(
-        "UPDATE products SET ? WHERE ?",
-        [
-            {
+        "UPDATE products SET ? WHERE ?", [{
                 stock_quantity: newStock
             },
             {
                 item_id: order.itemNum
             }
         ],
-        function(err, res) {
-            // console.log(res);
+        function (err, res) {
+            console.log("\nYour order is processing. Calculating final price...!\n");
+            setTimeout(function () {
 
-            console.log("Order processed!");
-            purchaseItem(order);
+                purchaseItem(order);
 
+            }, 3000)
         }
-    )    
+    )
 };
 
-var purchaseItem = function(userOrder){
-    console.log("Purchase price pending!")
-    console.log(userOrder.itemNum);
-    connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?",
-{
-    item_id: userOrder.itemNum
-},
-function(err, res) {
-    if (err) throw err;
-    
-    var totalAmt = (res[0].price * userOrder.quantity);
-    console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
-    // console.log(res);
+//Called if stock is sufficient
+var purchaseItem = function (userOrder) {
+    // console.log(userOrder.itemNum);
+    connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?", {
+            item_id: userOrder.itemNum
+        },
+        function (err, res) {
+            if (err) throw err;
 
-
-    connection.end();    
-})
+            var totalAmt = (res[0].price * userOrder.quantity);
+            console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
+            // console.log(res);
+            connection.end();
+        })
 }
-//Update the stock (and log)
-
-//Calculate the price and log
-
-//Ask to make another purchase
-
-
-// )
-
-
-
-
-
-/*  Locate item in products table that has item that matches user input
-    Compare stock of that item to amoutn user wants to order
-    If stock > amount ordered: place order()
-    If stock < amount ordered - lowStock()
-*/
-// }
