@@ -1,7 +1,3 @@
-import {
-    fips
-} from "crypto";
-
 //npm package requirements
 var inquirer = require("inquirer");
 var mysql = require("mysql");
@@ -48,7 +44,7 @@ var mainMenu = function () {
                 lowInventory();
                 break;
             case "Add to Inventory":
-                updateInventory();
+                viewProducts(true);
                 break;
             case "Add New Product":
                 newProduct();
@@ -72,8 +68,9 @@ var viewProducts = function (updateInv) {
             });
             console.log("\n");
 
-            if (updateInv) { //If this is being called from the updateInventory function, end function here.
-                return res;
+            if (updateInv) { //If user has requested to updated Inventory, call that function, passing in products array
+                
+                updateInventory(res);
             } else {
                 inquirer.prompt([{
                     message: "What would you like to do next?:",
@@ -113,7 +110,8 @@ var lowInventory = function () {
 
                 switch (answer.reorder) {
                     case "Yes, reorder now":
-                        updateInventory();
+                        viewProducts(true);
+                        
                         break;
                     case "No, back to the main menu":
                         mainMenu();
@@ -126,10 +124,8 @@ var lowInventory = function () {
         })
 };
 
-var updateInventory = function () {
-    //Get current inventory:
-    var productArr = viewProducts(true);
-    console.log(productArr);
+var updateInventory = function (itemArr) {
+     console.log(`The product array is : ${itemArr}`);
 
     inquirer.prompt([{
             message: "Please enter the item id for the product you would like to update",
@@ -139,7 +135,7 @@ var updateInventory = function () {
             message: "How much of this item would you like to add?",
             name: "updateAmt",
             validate: function (value) {
-                if (parseInt(value) > 0) {
+                if (itemArr.length -1 >parseInt(value) > 0) {
                     return true;
                 }
                 return "Please provide a valid number to add inventory to this item"
@@ -149,21 +145,19 @@ var updateInventory = function () {
     ]).then(function (answer) {
 
         answer.updateAmt = parseInt(answer.updateAmt);
-        var currStock = productArr[answer.updateItem - 1].stock_quantity;
-        console.log(`Current stock is ${currStock}`);
+        var currStock = itemArr[answer.updateItem - 1].stock_quantity; 
+        console.log(`Stock was ${currStock}...`);
 
-        var query = connection.query("UPDATE products SET ? where ?", 
-                [{
+        var query = connection.query("UPDATE products SET ? where ?", [{
                     stock_quantity: currStock + answer.updateAmt
                 },
                 {
                     item_id: answer.updateItem
                 }
-                ],
+            ],
             function (err, res) {
                 if (err) throw err;
-                console.log(res.affectedRows);
-                console.log(`The stock for ${productArr[answer.updateItem - 1].product_name} has been updated to ${currStock + answer.updateAmt}`)
+                console.log(`The stock for ${itemArr[answer.updateItem - 1].product_name} has been updated to ${currStock + answer.updateAmt}`)
                 inquirer.prompt([{
                     message: "What would you like to do next?:",
                     type: "list",
@@ -171,9 +165,7 @@ var updateInventory = function () {
                     choices: ["View an updated list of all products", "Go back to the main menu", "Log out of the manager's portal"],
                     default: "Log out of the manager's portal"
                 }]).then(function (answer) {
-
-
-                    switch(answer.userOptions) {
+                    switch (answer.userOptions) {
                         case "View an updated list of all products":
                             viewProducts(false);
                             break;
@@ -186,9 +178,7 @@ var updateInventory = function () {
                     }
                 })
             })
-
-            })
-
+    })
 };
 
 var newProduct = function () {
@@ -277,12 +267,10 @@ var endSession = function () {
 
 //Next Steps:
 
-//Retest all functions
-//Outline supervisor
-//Complete supervisor functions (requires updates to other pages)
-//Update database product names, quantities, prices
-
+//Update comments (all 3 pages)**
 //Update ReadMe
 
-//Update comments (all 3 pages)
+//Update database product names, quantities, prices
+
 //Create video
+//Turn In

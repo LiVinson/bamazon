@@ -9,7 +9,7 @@ CREATE TABLE products(
     product_name varchar(255) not null,
     department_name varchar(55) not null,
     price decimal(10,2) unsigned not null,
-    stock_quantity int unsigned default 0
+    stock_quantity int unsigned default 5
 );
 
 INSERT INTO products
