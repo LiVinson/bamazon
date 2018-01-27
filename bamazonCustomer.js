@@ -21,7 +21,7 @@ connection.connect(function (err) {
     viewInventory();
 });
 
-//display Items function
+//Display Items function
 var viewInventory = function () {
     connection.query("SELECT item_id, product_name, price FROM products", function (err, res) {
         if (err) throw err;
@@ -108,59 +108,37 @@ var updateStock = function (order, currentStock) {
     var newStock = currentStock - order.quantity;
     console.log(`We have ${newStock} left of that!`);
     var query = connection.query(
-        "UPDATE products SET ? WHERE ?",
-        [
-            {
+        "UPDATE products SET ? WHERE ?", [{
                 stock_quantity: newStock
             },
             {
                 item_id: order.itemNum
             }
         ],
-        function(err, res) {
+        function (err, res) {
             // console.log(res);
 
             console.log("Order processed!");
             purchaseItem(order);
 
         }
-    )    
+    )
 };
 
-var purchaseItem = function(userOrder){
+var purchaseItem = function (userOrder) {
     console.log("Purchase price pending!")
     console.log(userOrder.itemNum);
-    connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?",
-{
-    item_id: userOrder.itemNum
-},
-function(err, res) {
-    if (err) throw err;
-    
-    var totalAmt = (res[0].price * userOrder.quantity);
-    console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
-    // console.log(res);
+    connection.query("SELECT price,product_name,stock_quantity FROM products WHERE ?", {
+            item_id: userOrder.itemNum
+        },
+        function (err, res) {
+            if (err) throw err;
+
+            var totalAmt = (res[0].price * userOrder.quantity);
+            console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
+            // console.log(res);
 
 
-    connection.end();    
-})
+            connection.end();
+        })
 }
-//Update the stock (and log)
-
-//Calculate the price and log
-
-//Ask to make another purchase
-
-
-// )
-
-
-
-
-
-/*  Locate item in products table that has item that matches user input
-    Compare stock of that item to amoutn user wants to order
-    If stock > amount ordered: place order()
-    If stock < amount ordered - lowStock()
-*/
-// }
