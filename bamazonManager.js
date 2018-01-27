@@ -69,7 +69,6 @@ var viewProducts = function (updateInv) {
             console.log("\n");
 
             if (updateInv) { //If user has requested to updated Inventory, call that function, passing in products array
-                
                 updateInventory(res);
             } else {
                 inquirer.prompt([{
@@ -86,7 +85,8 @@ var viewProducts = function (updateInv) {
                     }
                 })
             }
-        });
+
+        })
 
 };
 
@@ -111,7 +111,7 @@ var lowInventory = function () {
                 switch (answer.reorder) {
                     case "Yes, reorder now":
                         viewProducts(true);
-                        
+
                         break;
                     case "No, back to the main menu":
                         mainMenu();
@@ -124,6 +124,7 @@ var lowInventory = function () {
         })
 };
 
+
 var updateInventory = function (itemArr) {
      console.log(`The product array is : ${itemArr}`);
 
@@ -135,7 +136,9 @@ var updateInventory = function (itemArr) {
             message: "How much of this item would you like to add?",
             name: "updateAmt",
             validate: function (value) {
+
                 if (itemArr.length -1 >parseInt(value) > 0) {
+
                     return true;
                 }
                 return "Please provide a valid number to add inventory to this item"
@@ -145,7 +148,9 @@ var updateInventory = function (itemArr) {
     ]).then(function (answer) {
 
         answer.updateAmt = parseInt(answer.updateAmt);
+
         var currStock = itemArr[answer.updateItem - 1].stock_quantity; 
+
         console.log(`Stock was ${currStock}...`);
 
         var query = connection.query("UPDATE products SET ? where ?", [{
@@ -183,6 +188,7 @@ var updateInventory = function (itemArr) {
 
 var newProduct = function () {
     inquirer.prompt([{
+
             message: "What is the name of the new product?",
             //validation?
             name: "newProd"
@@ -198,7 +204,9 @@ var newProduct = function () {
                     return "Please enter a valid number."
                 }
             }
+
         },
+
         {
             message: "Please select the product's department:",
             type: "list",
@@ -223,7 +231,8 @@ var newProduct = function () {
         }
     ]).then(function (response) {
         response.newProdPrice = parseInt(response.newProdPrice).toFixed(2);
-        console.log(`New product name: ${response.newName} New Product quantity: ${response.newQuantity}, product dept: ${response.newDept} product price: ${response.newPrice}`)
+        console.log(`New product name: ${response.newProd} New Product quantity: ${response.newProdQuant}, product dept: ${response.newProdDept} product price: $${newProdPrice.newPrice}`)
+
         var query = connection.query(
             "INSERT INTO products SET?", {
                 product_name: response.newProd,
