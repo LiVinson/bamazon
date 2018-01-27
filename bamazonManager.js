@@ -1,6 +1,12 @@
 //npm package requirements
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var cTable = require("console.table");
+
+require("dotenv").config();
+
+//Saves mySQL password from .env file
+var myPassword = process.env.MY_SQL_PASSWORD;
 
 //Set Mysql connection
 var connection = mysql.createConnection({
@@ -11,7 +17,7 @@ var connection = mysql.createConnection({
     user: "root",
 
     // Your password
-    password: "Handlez3!",
+    password: myPassword,
     database: "bamazon"
 });
 
@@ -21,7 +27,7 @@ connection.connect(function (err) {
     mainMenu();
 });
 
-var bamazonDepts = ["electronics", "appliances", "tools", "outdoors"];
+var bamazonDepts = ["Electronics", "Appliances", "Tools", "Outdoors"];
 
 
 //Functions:
@@ -63,9 +69,10 @@ var viewProducts = function (updateInv) {
         function (err, res) {
             if (err) throw err;
             console.log("Please see the current inventory below: \n");
-            res.forEach(function (productRow) {
-                console.log(`Item Id: ${productRow.item_id} - ${productRow.product_name}  Price: $${productRow.price} Stock: ${productRow.stock_quantity}`);
-            });
+            // res.forEach(function (productRow) {
+            //     console.log(`Item Id: ${productRow.item_id} - ${productRow.product_name}  Price: $${productRow.price} Stock: ${productRow.stock_quantity}`);
+            // });
+            console.table(res);
             console.log("\n");
 
             if (updateInv) { //If user has requested to updated Inventory, call that function, passing in products array
@@ -76,7 +83,7 @@ var viewProducts = function (updateInv) {
                     type: "list",
                     name: "userOptions",
                     choices: ["Go back to the main menu", "Log out of the manager's portal"],
-                    default: "Log out of the manager's portal"
+                    default: "Go back to the main menu"
                 }]).then(function (answer) {
                     if (answer.userOptions === "Go back to the main menu") {
                         mainMenu();
@@ -94,24 +101,21 @@ var lowInventory = function () {
     connection.query("SELECT item_id, product_name, stock_quantity FROM products WHERE stock_quantity < 5",
         function (err, res) {
             if (err) throw err;
-            console.log("The following products are almost out of stock:")
-            console.log("_______________________________________________")
-            res.forEach(function (productRow) {
-                console.log(`${productRow.item_id} - ${productRow.product_name} - Quantity: ${productRow.stock_quantity}`)
-            });
+            console.log("The following products are almost out of stock:\n")
+
+            console.table(res);
             console.log("\n");
             inquirer.prompt([{
                 message: "Would you like to reorder any products?",
                 type: "list",
-                choices: ["Yes, reorder now", "No, back to the main menu", "No, log out of out the manager's portal"],
-                default: "No, back to the main menu",
+                choices: ["Yes, reorder now", "No, back to the main menu", "No, log out of the manager's portal"],
+                default: "Yes, reorder now",
                 name: "reorder"
             }]).then(function (answer) {
 
                 switch (answer.reorder) {
                     case "Yes, reorder now":
                         viewProducts(true);
-
                         break;
                     case "No, back to the main menu":
                         mainMenu();
@@ -126,8 +130,6 @@ var lowInventory = function () {
 
 
 var updateInventory = function (itemArr) {
-     console.log(`The product array is : ${itemArr}`);
-
     inquirer.prompt([{
             message: "Please enter the item id for the product you would like to update",
             name: "updateItem",
@@ -135,54 +137,56 @@ var updateInventory = function (itemArr) {
         {
             message: "How much of this item would you like to add?",
             name: "updateAmt",
-            validate: function (value) {
-
-                if (itemArr.length -1 >parseInt(value) > 0) {
-
-                    return true;
+            validate: function (answer) {
+                if (parseInt(answer) % 1 === 0) {
+                    return true
+                } else {
+                    return "Please enter a valid number."
                 }
-                return "Please provide a valid number to add inventory to this item"
             },
-            default: 5
+            default: 8
         }
     ]).then(function (answer) {
 
         answer.updateAmt = parseInt(answer.updateAmt);
 
-        var currStock = itemArr[answer.updateItem - 1].stock_quantity; 
+        var currStock = itemArr[answer.updateItem - 1].stock_quantity;
 
-        console.log(`Stock was ${currStock}...`);
+        console.log(`Ordering more of ${itemArr[answer.updateItem - 1].product_name}...\n`);
 
-        var query = connection.query("UPDATE products SET ? where ?", [{
-                    stock_quantity: currStock + answer.updateAmt
-                },
-                {
-                    item_id: answer.updateItem
-                }
-            ],
-            function (err, res) {
-                if (err) throw err;
-                console.log(`The stock for ${itemArr[answer.updateItem - 1].product_name} has been updated to ${currStock + answer.updateAmt}`)
-                inquirer.prompt([{
-                    message: "What would you like to do next?:",
-                    type: "list",
-                    name: "userOptions",
-                    choices: ["View an updated list of all products", "Go back to the main menu", "Log out of the manager's portal"],
-                    default: "Log out of the manager's portal"
-                }]).then(function (answer) {
-                    switch (answer.userOptions) {
-                        case "View an updated list of all products":
-                            viewProducts(false);
-                            break;
-                        case "Go back to the main menu":
-                            mainMenu();
-                            break;
-                        case "Log out of the manager's portal":
-                            endSession();
-                            break;
+        setTimeout(function () {
+            var query = connection.query("UPDATE products SET ? where ?", [{
+                        stock_quantity: currStock + answer.updateAmt
+                    },
+                    {
+                        item_id: answer.updateItem
                     }
+                ],
+                function (err, res) {
+                    if (err) throw err;
+                    console.log(`The stock for ${itemArr[answer.updateItem - 1].product_name} has been updated to ${currStock + answer.updateAmt}`)
+                    inquirer.prompt([{
+                        message: "What would you like to do next?:",
+                        type: "list",
+                        name: "userOptions",
+                        choices: ["View an updated list of all products", "Go back to the main menu", "Log out of the manager's portal"],
+                        default: "Log out of the manager's portal"
+                    }]).then(function (answer) {
+                        switch (answer.userOptions) {
+                            case "View an updated list of all products":
+                                viewProducts(false);
+                                break;
+                            case "Go back to the main menu":
+                                mainMenu();
+                                break;
+                            case "Log out of the manager's portal":
+                                endSession();
+                                break;
+                        }
+                    })
                 })
-            })
+        }, 3000)
+
     })
 };
 
@@ -194,7 +198,7 @@ var newProduct = function () {
             name: "newProd"
         },
         {
-            message: "How much of the product is in stock?",
+            message: "How much of the product should be added to the inventory?",
             name: "newProdQuant",
             default: 10,
             validate: function (answer) {
@@ -204,9 +208,7 @@ var newProduct = function () {
                     return "Please enter a valid number."
                 }
             }
-
         },
-
         {
             message: "Please select the product's department:",
             type: "list",
@@ -214,7 +216,7 @@ var newProduct = function () {
             name: "newProdDept"
         },
         {
-            message: "How much will the product cost, including include cents (i.e. 100.00)?: $",
+            message: "How much will the product cost, including cents (i.e. 100.00)?: $",
             name: "newProdPrice",
             validate: function (val) {
 
@@ -231,7 +233,7 @@ var newProduct = function () {
         }
     ]).then(function (response) {
         response.newProdPrice = parseInt(response.newProdPrice).toFixed(2);
-        console.log(`New product name: ${response.newProd} New Product quantity: ${response.newProdQuant}, product dept: ${response.newProdDept} product price: $${newProdPrice.newPrice}`)
+        console.log(`Adding ${response.newProdQuant} of ${response.newProd} to inventory...`)
 
         var query = connection.query(
             "INSERT INTO products SET?", {
@@ -241,8 +243,7 @@ var newProduct = function () {
                 stock_quantity: response.newProdQuant
             },
             function (err, res) {
-                console.log(`${res.affectedRows} new product has been added!`);
-
+                console.log(`Update complete! ${response.newProd} has been added to inventory!\n`)
                 inquirer.prompt([{
                     message: "What would you like to do now?",
                     name: "userChoice",
@@ -276,7 +277,7 @@ var endSession = function () {
 
 //Next Steps:
 
-//Update comments (all 3 pages)**
+
 //Update ReadMe
 
 //Update database product names, quantities, prices

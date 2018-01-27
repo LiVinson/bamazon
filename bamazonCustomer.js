@@ -1,6 +1,12 @@
 //npm package requirements
 var inquirer = require("inquirer");
 var mysql = require("mysql");
+var cTable = require("console.table");
+
+require("dotenv").config();
+
+//Saves mySQL password from .env file
+var myPassword = process.env.MY_SQL_PASSWORD;
 
 //Set Mysql connection
 var connection = mysql.createConnection({
@@ -11,7 +17,7 @@ var connection = mysql.createConnection({
     user: "root",
 
     // Your password
-    password: "Handlez3!",
+    password: myPassword,
     database: "bamazon"
 });
 
@@ -25,14 +31,11 @@ connection.connect(function (err) {
 var viewInventory = function () {
     connection.query("SELECT item_id, product_name, price FROM products", function (err, res) {
         if (err) throw err;
-        console.log(`Welcome to Bamazon!`);
+        console.log(`Welcome to Bamazon!\n`);
         console.log(`Checkout out our current inventory:\n`);
-        console.log(`Item # | Product Name | Price    `);
 
-        res.forEach(function (productRow) {
-            console.log(`  ${productRow.item_id} - ${productRow.product_name}:  $${productRow.price}  `);
-        })
-
+        console.table(res);
+        console.log("");
         requestOrder(res);
 
     })
@@ -62,7 +65,7 @@ var requestOrder = function (productArr) {
     }]).then(function (answer) {
 
 
-        console.log(`\nConfirming stock of  ${productArr[answer.itemNum-1].product_name}s...\n`);
+        console.log(`\nConfirming stock of ${productArr[answer.itemNum-1].product_name}s...\n`);
 
         setTimeout(function () {
 
@@ -81,7 +84,7 @@ var confirmStock = function (userOrder) {
             if (err) throw err;
             // console.log(res);
             var itemStock = res[0].stock_quantity;
-            console.log(`There are currently ${itemStock} ${res[0].product_name}s in stock!`)
+            // console.log(`There are currently ${itemStock} ${res[0].product_name}s in stock!`)
             if (itemStock < userOrder.quantity) {
                 insuffStock(userOrder.quantity, res[0].product_name);
             } else {
@@ -91,11 +94,11 @@ var confirmStock = function (userOrder) {
 };
 
 var insuffStock = function (amount, prodName) {
-    console.log(`We're sorry! Currently, we do not have enough ${prodName}s in stock!`);
+    console.log(`We're sorry! We do not have enough ${prodName}s in stock to fill your order!\n`);
     inquirer.prompt([{
         type: "confirm",
         name: "reorder",
-        message: "Would you like to take another look at our inventory and try ordering again?",
+        message: "Would you like to order something else?",
         default: true
     }]).then(function (answer) {
         if (answer.reorder) {
@@ -120,7 +123,7 @@ var updateStock = function (order, currentStock) {
         ],
         function (err, res) {
 
-            console.log("\nYour order is processing. Calculating final price...!\n");
+            console.log("\nYour order is processing. Calculating your total...\n");
             setTimeout(function () {
 
                 purchaseItem(order);
@@ -141,8 +144,24 @@ var purchaseItem = function (userOrder) {
         function (err, res) {
             if (err) throw err;
             var totalAmt = (res[0].price * userOrder.quantity);
-            console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!`);
+            console.log(`Your total for ${userOrder.quantity} ${res[0].product_name}s is $${totalAmt}! Your store account has been charged!\n Thank you for your purchase!\n`);
+            //Insert steps to update product_sales
 
-            connection.end();
+            inquirer.prompt([
+                {
+                    message: "Would you like to place another order?",
+                    name:"orderAgain",
+                    type: "confirm"
+                    
+                }]).then(function(answer) {
+
+                    if (answer.orderAgain) {
+                        viewInventory()
+                    } else{
+                        console.log("\nThank you for shopping at Bamazon!")
+                        connection.end();
+                    }
+                })
+           
         })
 }
