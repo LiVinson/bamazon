@@ -9,17 +9,19 @@ To run the application, the following applications are required:
 
 * NPM packages: 
    
-    * [Inquirer](https://www.npmjs.com/package/inquirer)
-    * [Console Table]()
-    * [Dotenv]()
-    * [Mysql]() 
+    * [Inquirer](https://www.npmjs.com/package/inquirer): Used to create menu prompts to user
+    * [Mysql](https://www.npmjs.com/package/mysql): Used to interact with database in MySQL Workbench inside of javascript files
+    * [Console Table](https://www.npmjs.com/package/console.table): Used to log data my MySQL into a table
+    * [Dotenv](https://www.npmjs.com/package/dotenv): Used to keep mySQL password used in Mysql npm local
+
 
 ## Setup
 
 Once the bamazon repo is cloned locally and any requirements installed using `npm install` in the command line, the following need to be completed:
-* Create a .env file. In it, type in `MY_SQL_PASSWORD=your_mySQL_pw_here`, replacing "your_mySQL_pw_here" with the your mySQL Workbench password
 
-* Copy and paste the contents of the bamazonCustomer.sql file into MySQL Workbench to add the products database.
+    * Create a .env file. In it, type in `MY_SQL_PASSWORD=your_mySQL_pw_here`, replacing "your_mySQL_pw_here" with the your mySQL Workbench password
+
+    * Copy and paste the contents of the bamazonCustomer.sql file into MySQL Workbench to add the products database.
 
 ### Bamazon Customer Portal
 
