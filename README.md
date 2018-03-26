@@ -34,7 +34,7 @@ The bamazonCustomer.js file allows user to view the current products available f
 The bamazonManager.js file allows users to view the current products in the products database, view the products with a low inventory, update the inventory of any item, and add a new product to the product table.
 
 
-[Check this video to see the bamazon manager portal in action:] (https://CoderLi.tinytake.com/sf/MjMwNDM5OF83MDY4MzE5)
+[Check this video to see the bamazon manager portal in action:] (https://CoderLi.tinytake.com/sf/MjMwNDQyNV83MDY4NDM3)
 
 ### Bamazon Supervisor Portal
 
