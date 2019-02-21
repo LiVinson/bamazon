@@ -283,7 +283,8 @@ const newProduct = () => {
           product_name: response.newProd,
           department_name: response.newProdDept,
           price: response.newProdPrice,
-          stock_quantity: response.newProdQuant
+          stock_quantity: response.newProdQuant,
+          product_sales: 0.0
         },
         (err, res) => {
           console.log(
