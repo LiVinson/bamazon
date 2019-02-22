@@ -1,8 +1,8 @@
 //npm package requirements
 const inquirer = require("inquirer");
 const mysql = require("mysql");
-require("dotenv").config();
 const cTable = require("console.table");
+require("dotenv").config();
 
 const SQLhost = process.env.MY_SQL_HOST;
 const SQLport = process.env.MY_SQL_PORT;

@@ -2,7 +2,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 const cTable = require("console.table");
-
 require("dotenv").config();
 
 const SQLhost = process.env.MY_SQL_HOST;
@@ -20,16 +19,16 @@ const connection = mysql.createConnection({
   database: SQLdb
 });
 
-connection.connect(function(err) {
+connection.connect(err => {
   if (err) throw err;
   viewInventory();
 });
 
 //Display Items function
-const viewInventory = function() {
+const viewInventory = () => {
   connection.query(
     "SELECT item_id, product_name, price FROM products",
-    function(err, res) {
+    (err, res) => {
       if (err) throw err;
       console.log(`Welcome to Bamazon!\n`);
       console.log(`Checkout out our current inventory:\n`);
@@ -42,14 +41,14 @@ const viewInventory = function() {
 };
 
 //Called once viewInventory function completes
-const requestOrder = function(productArr) {
+const requestOrder = productArr => {
   inquirer
     .prompt([
       {
         name: "itemNum",
         message:
           "Please enter the item # for the item you would like to purchase:",
-        validate: function(itemNum) {
+        validate: itemNum => {
           if (
             Number.isInteger(parseInt(itemNum)) &&
             0 < parseInt(itemNum) < productArr.length
@@ -64,26 +63,26 @@ const requestOrder = function(productArr) {
       {
         name: "quantity",
         message: "How many would you like to buy (please enter a quantity):",
-        validate: function(amount) {
+        validate: amount => {
           if (parseInt(amount) > 0) return true;
           else return "Please enter a number greater than 0 for the quanitity";
         }
       }
     ])
-    .then(function(answer) {
+    .then(answer => {
       console.log(
         `\nConfirming stock of ${
           productArr[answer.itemNum - 1].product_name
         }s...\n`
       );
 
-      setTimeout(function() {
+      setTimeout(() => {
         confirmStock(answer);
       }, 2000);
     });
 };
 
-const confirmStock = function(userOrder) {
+const confirmStock = userOrder => {
   userOrder.itemNum = parseInt(userOrder.itemNum);
 
   connection.query(
@@ -91,12 +90,9 @@ const confirmStock = function(userOrder) {
     {
       item_id: userOrder.itemNum
     },
-    function(err, res) {
+    (err, res) => {
       if (err) throw err;
       const item = res[0];
-      // const itemStock = res[0].stock_quantity;
-      // const currentSales = res[0].product_sales;
-      // console.log(currentSales);
       if (item.stock_quantity < userOrder.quantity) {
         insuffStock(res[0].product_name);
       } else {
@@ -106,7 +102,7 @@ const confirmStock = function(userOrder) {
   );
 };
 
-const insuffStock = function(prodName) {
+const insuffStock = prodName => {
   console.log(
     `We're sorry! We do not have enough ${prodName}s in stock to fill your order!\n`
   );
@@ -119,7 +115,7 @@ const insuffStock = function(prodName) {
         default: true
       }
     ])
-    .then(function(answer) {
+    .then(answer => {
       if (answer.reorder) {
         viewInventory();
       } else {
@@ -129,10 +125,10 @@ const insuffStock = function(prodName) {
     });
 };
 
-const purchaseItem = function(
+const purchaseItem = (
   { price, stock_quantity, product_sales, product_name },
   { itemNum, quantity }
-) {
+) => {
   const newStock = stock_quantity - quantity;
   const newSales = quantity * price + product_sales;
 
@@ -147,10 +143,10 @@ const purchaseItem = function(
         item_id: itemNum
       }
     ],
-    function(err, res) {
+    (err, res) => {
       console.log("\nYour order is processing. Calculating your total...\n");
       if (res.changedRows) {
-        setTimeout(function() {
+        setTimeout(() => {
           displayReceipt(quantity, product_name, price);
         }, 3000);
       } else {
@@ -164,7 +160,7 @@ const purchaseItem = function(
 };
 
 //Called if stock is sufficient
-const displayReceipt = function(itemQuantity, itemName, itemPrice) {
+const displayReceipt = (itemQuantity, itemName, itemPrice) => {
   const totalAmt = itemQuantity * itemPrice;
   console.log(
     `Your total for ${itemQuantity} ${itemName}${
@@ -180,7 +176,7 @@ const displayReceipt = function(itemQuantity, itemName, itemPrice) {
         type: "confirm"
       }
     ])
-    .then(function(answer) {
+    .then(answer => {
       if (answer.orderAgain) {
         viewInventory();
       } else {
